@@ -34,6 +34,9 @@ git clone https://github.com/Zecyel/acorn-generator.git
 cd acorn-generator
 python dump_folder.py --path ../acornprover.org/docs/ -o context.txt
 git clone https://github.com/acornprover/acornlib.git
+cd acornlib
+wget https://github.com/acornprover/acorn/releases/download/v0.1.13/acorn-0.1.13-linux-x64 -O acorn
+chmod +x ./acorn
 ```
 
 ## Usage

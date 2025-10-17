@@ -60,9 +60,9 @@ python acorn_dev_agent.py --acornlib-path ./acornlib --context ./context.txt
 The autonomous agent will:
 1. Read next task from `acornlib/TODO.md`
 2. Generate implementation using LLM
-3. **Test in external file first** (`test_code.ac`)
-4. **Auto-fix errors** (up to 3 attempts with error feedback)
-5. Apply to stdlib and verify with `./acorn`
+3. **Apply changes directly to stdlib files**
+4. **Verify with `./acorn`** (runs in acornlib directory to catch errors)
+5. **Auto-fix errors** (up to 3 attempts with error feedback to LLM)
 6. Git add, commit, and push changes
 7. Update TODO.md marking task complete
 8. Repeat until max iterations or no tasks remain
@@ -112,14 +112,13 @@ Autonomous development agent for the Acorn standard library with auto-fix:
 - `update_todo_mark_complete(todo_path, task_description)`: Marks tasks as [x] when done
 - `load_acorn_context(acornlib_path, context_file)`: Loads CLAUDE.md, TODO.md, and documentation context
 - `generate_implementation(task, context, model, error_context)`: Uses LLM to generate code (with error feedback)
-- `test_in_external_file(acornlib_path, code, test_filename)`: Tests code in external file before merging
 - `verify_acorn_file(acornlib_path, test_file)`: Verifies specific file with `./acorn`
 - `verify_acorn_code(acornlib_path)`: Runs `./acorn` to verify all code
 - `apply_implementation(acornlib_path, implementation)`: Applies file changes from LLM response
 - `git_add_commit_push(acornlib_path, files, commit_message, push)`: Commits and pushes changes
 - `run_agent(...)`: Main loop with retry logic (up to 3 auto-fix attempts per task)
 
-**Auto-fix feature**: When verification fails, the agent feeds error messages back to the LLM for automatic correction, retrying up to 3 times before giving up.
+**Auto-fix feature**: When verification fails, the agent feeds error messages back to the LLM for automatic correction, retrying up to 3 times before giving up. Changes are rolled back between retry attempts using `git checkout .`.
 
 ## Project Context
 

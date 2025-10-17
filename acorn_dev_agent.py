@@ -282,17 +282,6 @@ Generate the implementation now:"""
         }
 
 
-def test_in_external_file(acornlib_path: str, code: str, test_filename: str = "test_code.ac") -> Tuple[bool, str]:
-    """Test code in external file before merging into stdlib."""
-    test_path = os.path.join(os.path.dirname(acornlib_path), test_filename)
-
-    print(f"\n📝 Writing test code to {test_filename}...")
-    write_file(test_path, code)
-
-    # Verify with relative path
-    success, output = verify_acorn_file(acornlib_path, f"../{test_filename}")
-
-    return success, output
 
 
 def apply_implementation(acornlib_path: str, implementation: Dict[str, any]) -> List[str]:
@@ -378,29 +367,6 @@ def run_agent(
                     print("\n❌ Stopping due to parsing error after max attempts")
                     break
 
-            # Test in external file first
-            if implementation.get('files'):
-                test_code_parts = []
-                for file_spec in implementation['files']:
-                    if 'content' in file_spec:
-                        test_code_parts.append(f"// {file_spec['path']}")
-                        test_code_parts.append(file_spec['content'])
-                        test_code_parts.append("")
-
-                test_code = "\n".join(test_code_parts)
-                test_success, test_output = test_in_external_file(acornlib_path, test_code)
-
-                if not test_success:
-                    if attempt < MAX_FIX_ATTEMPTS - 1:
-                        error_context = f"Code verification failed with error:\n{test_output}\n\nPlease fix the errors."
-                        continue
-                    else:
-                        print(f"\n❌ Auto-fix failed after {MAX_FIX_ATTEMPTS} attempts")
-                        print("Manual intervention needed.")
-                        break
-
-                print("\n✅ External file test passed!")
-
             # Apply implementation to actual files
             modified_files = apply_implementation(acornlib_path, implementation)
 
@@ -450,9 +416,9 @@ def main():
 This agent:
 1. Reads TODO.md to find next task
 2. Uses LLM to generate implementation
-3. Tests code in external file first
-4. Auto-fixes errors (up to 3 attempts)
-5. Verifies with ./acorn
+3. Applies changes directly to stdlib files
+4. Verifies with ./acorn (runs in acornlib directory)
+5. Auto-fixes errors (up to 3 attempts with error feedback)
 6. Commits and pushes changes
 7. Updates TODO.md
 8. Repeats until all tasks are done
