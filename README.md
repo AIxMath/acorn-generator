@@ -23,20 +23,44 @@ export OPENAI_API_KEY="your-api-key-here"
 export OPENAI_BASE_URL="https://api.your-provider.com/v1/chat/completions"
 ```
 
-### Generate Context File
-
-First, generate the Acorn documentation context:
+### Clone the Repository
 
 ```bash
-cd /tmp
-git clone https://github.com/acornprover/acornprover.org.git
-git clone https://github.com/Zecyel/acorn-generator.git
+git clone https://github.com/AIxMath/acorn-generator.git
 cd acorn-generator
-python dump_folder.py --path ../acornprover.org/docs/ -o context.txt
-git clone https://github.com/acornprover/acornlib.git
+```
+
+### Initialize Submodule
+
+The `acornlib` directory is a git submodule. Initialize and pull it:
+
+```bash
+git submodule init
+git submodule update
+```
+
+Or clone with submodules in one step:
+
+```bash
+git clone --recurse-submodules https://github.com/AIxMath/acorn-generator.git
+```
+
+### Download Acorn Binary
+
+```bash
 cd acornlib
 wget https://github.com/acornprover/acorn/releases/download/v0.1.13/acorn-0.1.13-linux-x64 -O acorn
 chmod +x ./acorn
+cd ..
+```
+
+### Generate Context File
+
+Generate the Acorn documentation context:
+
+```bash
+git clone https://github.com/acornprover/acornprover.org.git
+python dump_folder.py --path ../acornprover.org/docs/ -o context.txt
 ```
 
 ## Usage
