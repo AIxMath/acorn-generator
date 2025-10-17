@@ -3,3 +3,5 @@ context.txt
 __pycache__/
 *.pyc
 .env
+**/.claude/settings.local.json
+acorn

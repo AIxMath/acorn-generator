@@ -41,10 +41,13 @@ def run_command(cmd: List[str], cwd: str = None, check: bool = True) -> Tuple[in
 
 def verify_acorn_file(acornlib_path: str, test_file: str) -> Tuple[bool, str]:
     """Verify a specific Acorn file. Returns (success, output)."""
-    print(f"\n🔍 Verifying {test_file} with ./acorn...")
+    # Get parent directory (where acorn binary is located)
+    parent_dir = os.path.dirname(os.path.abspath(acornlib_path))
+
+    print(f"\n🔍 Verifying {test_file} with ./acorn --lib ./acornlib...")
     returncode, stdout, stderr = run_command(
-        ["./acorn", test_file],
-        cwd=acornlib_path,
+        ["./acorn", "--lib", "./acornlib", test_file],
+        cwd=parent_dir,
         check=False
     )
 
@@ -61,9 +64,16 @@ def verify_acorn_file(acornlib_path: str, test_file: str) -> Tuple[bool, str]:
 
 
 def verify_acorn_code(acornlib_path: str) -> Tuple[bool, str]:
-    """Run ./acorn to verify all code. Returns (success, output)."""
-    print("\n🔍 Verifying all code with ./acorn...")
-    returncode, stdout, stderr = run_command(["./acorn"], cwd=acornlib_path, check=False)
+    """Run ./acorn --lib ./acornlib to verify all code. Returns (success, output)."""
+    # Get parent directory (where acorn binary is located)
+    parent_dir = os.path.dirname(os.path.abspath(acornlib_path))
+
+    print("\n🔍 Verifying all code with ./acorn --lib ./acornlib...")
+    returncode, stdout, stderr = run_command(
+        ["./acorn", "--lib", "./acornlib"],
+        cwd=parent_dir,
+        check=False
+    )
 
     output = stdout + stderr
     success = returncode == 0
@@ -417,7 +427,7 @@ This agent:
 1. Reads TODO.md to find next task
 2. Uses LLM to generate implementation
 3. Applies changes directly to stdlib files
-4. Verifies with ./acorn (runs in acornlib directory)
+4. Verifies with ./acorn --lib ./acornlib (runs from base directory)
 5. Auto-fixes errors (up to 3 attempts with error feedback)
 6. Commits and pushes changes
 7. Updates TODO.md

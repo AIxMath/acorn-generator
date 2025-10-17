@@ -47,11 +47,19 @@ git clone --recurse-submodules https://github.com/AIxMath/acorn-generator.git
 
 ### Download Acorn Binary
 
+Download the Acorn verifier to the base directory:
+
 ```bash
-cd acornlib
 wget https://github.com/acornprover/acorn/releases/download/v0.1.13/acorn-0.1.13-linux-x64 -O acorn
 chmod +x ./acorn
-cd ..
+```
+
+### Verify Installation
+
+Test that the Acorn verifier can access the stdlib:
+
+```bash
+./acorn --lib ./acornlib
 ```
 
 ### Generate Context File
