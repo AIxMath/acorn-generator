@@ -1,1 +1,6 @@
-prompt.txt
+context.txt
+*.ac
+__pycache__/
+*.pyc
+.env
+acornlib/
