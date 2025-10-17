@@ -4,7 +4,13 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-This is a Python utility for dumping documentation folders into a single text file, designed to work with the Acorn Prover documentation. The tool recursively collects all files from a directory and formats them into a single stream for processing by LLMs.
+This is a Python toolkit for AI-assisted development of the Acorn mathematical proof language standard library. It includes:
+
+1. **Documentation Dumper** (`dump_folder.py`) - Aggregates Acorn documentation into a context file
+2. **Library Extension Agent** (`acorn_agent.py`) - Generates new Acorn theorems and structures on demand
+3. **Autonomous Development Agent** (`acorn_dev_agent.py`) - Automatically implements tasks from TODO.md with verification and git integration
+
+The tools work together to accelerate Acorn standard library development using LLM assistance.
 
 ## Common Commands
 
@@ -32,6 +38,34 @@ python acorn_agent.py --request "Prove the Pythagorean theorem" -o pythagorean.a
 # Use a different model
 python acorn_agent.py --request "Define fibonacci sequence" --model gpt-4
 ```
+
+### Running the autonomous development agent
+```bash
+# Dry run (see what would be done)
+python acorn_dev_agent.py --dry-run
+
+# Run with default settings (processes tasks from acornlib/TODO.md)
+python acorn_dev_agent.py
+
+# Run without pushing (commit locally only)
+python acorn_dev_agent.py --no-push
+
+# Limit iterations
+python acorn_dev_agent.py --max-iterations 3
+
+# Custom paths
+python acorn_dev_agent.py --acornlib-path ./acornlib --context ./context.txt
+```
+
+The autonomous agent will:
+1. Read next task from `acornlib/TODO.md`
+2. Generate implementation using LLM
+3. **Test in external file first** (`test_code.ac`)
+4. **Auto-fix errors** (up to 3 attempts with error feedback)
+5. Apply to stdlib and verify with `./acorn`
+6. Git add, commit, and push changes
+7. Update TODO.md marking task complete
+8. Repeat until max iterations or no tasks remain
 
 Required environment variables:
 - `OPENAI_API_KEY`: API key for the LLM service
@@ -72,12 +106,66 @@ The agent uses the documentation context to understand Acorn syntax and library 
 - Typeclasses for algebraic structures
 - Example usage and comments
 
+### acorn_dev_agent.py
+Autonomous development agent for the Acorn standard library with auto-fix:
+- `extract_next_task(todo_path)`: Parses TODO.md to find next uncompleted task
+- `update_todo_mark_complete(todo_path, task_description)`: Marks tasks as [x] when done
+- `load_acorn_context(acornlib_path, context_file)`: Loads CLAUDE.md, TODO.md, and documentation context
+- `generate_implementation(task, context, model, error_context)`: Uses LLM to generate code (with error feedback)
+- `test_in_external_file(acornlib_path, code, test_filename)`: Tests code in external file before merging
+- `verify_acorn_file(acornlib_path, test_file)`: Verifies specific file with `./acorn`
+- `verify_acorn_code(acornlib_path)`: Runs `./acorn` to verify all code
+- `apply_implementation(acornlib_path, implementation)`: Applies file changes from LLM response
+- `git_add_commit_push(acornlib_path, files, commit_message, push)`: Commits and pushes changes
+- `run_agent(...)`: Main loop with retry logic (up to 3 auto-fix attempts per task)
+
+**Auto-fix feature**: When verification fails, the agent feeds error messages back to the LLM for automatic correction, retrying up to 3 times before giving up.
+
 ## Project Context
 
-This tool is designed to work alongside the Acorn Prover documentation repository (https://github.com/acornprover/acornprover.org). The typical workflow involves:
-1. Cloning both repositories
-2. Using `dump_folder.py` to aggregate the documentation into `context.txt`
-3. Using `acorn_agent.py` to generate new Acorn standard library code based on the context
+This toolkit is designed to work alongside:
+- **Acorn Prover documentation** (https://github.com/acornprover/acornprover.org)
+- **Acorn standard library** (https://github.com/AIxMath/acornlib.git)
+
+### Typical Workflow
+
+1. **Initial Setup**:
+   ```bash
+   # Clone documentation
+   git clone https://github.com/acornprover/acornprover.org.git
+
+   # Clone or use existing acornlib
+   # (acornlib should be in the project directory)
+
+   # Generate context
+   python dump_folder.py --path ../acornprover.org/docs/ -o context.txt
+   ```
+
+2. **Manual Development** (interactive):
+   ```bash
+   python acorn_agent.py --interactive
+   # Enter requests to generate code
+   # Review and manually add to acornlib
+   ```
+
+3. **Autonomous Development** (from TODO.md):
+   ```bash
+   python acorn_dev_agent.py
+   # Agent reads tasks from acornlib/TODO.md
+   # Implements, verifies, commits, and pushes automatically
+   ```
+
+4. **Verification**:
+   ```bash
+   cd acornlib
+   ./acorn  # Verify all code compiles
+   ```
+
+5. **Create Pull Request**:
+   ```bash
+   # After reviewing commits, create PR on GitHub
+   gh pr create --title "feat: implement X" --body "..."
+   ```
 
 ## Acorn Language Overview
 
