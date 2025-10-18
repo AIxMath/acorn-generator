@@ -8,7 +8,7 @@ This is a Python toolkit for AI-assisted development of the Acorn mathematical p
 
 1. **Documentation Dumper** (`dump_folder.py`) - Aggregates Acorn documentation into a context file
 2. **Library Extension Agent** (`acorn_agent.py`) - Generates new Acorn theorems and structures on demand
-3. **Autonomous Development Agent** (`acorn_dev_agent.py`) - Automatically implements tasks from TODO.md with verification and git integration
+3. **Autonomous Development Agent** (`acorn_agent.py`) - Automatically implements tasks from TODO.md with verification and git integration
 
 The tools work together to accelerate Acorn standard library development using LLM assistance.
 
@@ -49,37 +49,37 @@ python acorn_agent.py --request "Define fibonacci sequence" --model gpt-4
 
 ```bash
 # Dry run (see what would be done)
-python acorn_dev_agent.py --dry-run
+python acorn_agent.py --dry-run
 
 # TODO.md mode (default - processes tasks from acornlib/TODO.md)
-python acorn_dev_agent.py
+python acorn_agent.py
 
 # Manual task mode - execute a single task
-python acorn_dev_agent.py --task "Add multiplication axioms to Semiring"
+python acorn_agent.py --task "Add multiplication axioms to Semiring"
 
 # Interactive mode - enter tasks manually
-python acorn_dev_agent.py --interactive
+python acorn_agent.py --interactive
 
 # Run without pushing (commit locally only)
-python acorn_dev_agent.py --no-push
+python acorn_agent.py --no-push
 
 # Ask for confirmation before each push
-python acorn_dev_agent.py --confirm-push
+python acorn_agent.py --confirm-push
 
 # Interactive mode with confirmation before push
-python acorn_dev_agent.py --interactive --confirm-push
+python acorn_agent.py --interactive --confirm-push
 
 # Limit iterations (only for TODO.md mode)
-python acorn_dev_agent.py --max-iterations 3
+python acorn_agent.py --max-iterations 3
 
 # Custom paths
-python acorn_dev_agent.py --acornlib-path ./acornlib --context ./context.txt
+python acorn_agent.py --acornlib-path ./acornlib --context ./context.txt
 
 # Analyze logs to understand failure patterns
-python acorn_dev_agent.py --analyze-logs
+python acorn_agent.py --analyze-logs
 
 # Analyze logs from custom directory
-python acorn_dev_agent.py --analyze-logs --log-dir ./custom_logs
+python acorn_agent.py --analyze-logs --log-dir ./custom_logs
 ```
 
 The autonomous agent will:
@@ -131,7 +131,7 @@ The agent uses the documentation context to understand Acorn syntax and library 
 - Typeclasses for algebraic structures
 - Example usage and comments
 
-### acorn_dev_agent.py
+### acorn_agent.py
 Autonomous development agent for the Acorn standard library with auto-fix:
 - `extract_next_task(todo_path)`: Parses TODO.md to find next uncompleted task
 - `update_todo_mark_complete(todo_path, task_description)`: Marks tasks as [x] when done
@@ -168,7 +168,7 @@ The agent maintains comprehensive logs in the `logs/` directory to help you unde
 **Analyzing logs:**
 ```bash
 # Analyze all logs to identify patterns
-python acorn_dev_agent.py --analyze-logs
+python acorn_agent.py --analyze-logs
 
 # Common failure reasons to watch for:
 - Syntax errors in Acorn code
@@ -213,7 +213,7 @@ This toolkit is designed to work alongside:
 
 3. **Autonomous Development** (from TODO.md):
    ```bash
-   python acorn_dev_agent.py
+   python acorn_agent.py
    # Agent reads tasks from acornlib/TODO.md
    # Implements, verifies, commits, and pushes automatically
    ```

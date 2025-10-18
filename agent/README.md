@@ -66,16 +66,16 @@ The agent can be used in three modes:
 
 ```bash
 # TODO.md mode (default)
-python acorn_dev_agent.py
+python acorn_agent.py
 
 # Manual task mode
-python acorn_dev_agent.py --task "Add multiplication axioms"
+python acorn_agent.py --task "Add multiplication axioms"
 
 # Interactive mode
-python acorn_dev_agent.py --interactive
+python acorn_agent.py --interactive
 
 # Analyze logs
-python acorn_dev_agent.py --analyze-logs
+python acorn_agent.py --analyze-logs
 ```
 
 ## Error Handling
