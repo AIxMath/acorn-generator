@@ -1,3 +1,4 @@
 [submodule "acornlib"]
 	path = acornlib
 	url = https://github.com/AIxMath/acornlib.git
+	branch = main
