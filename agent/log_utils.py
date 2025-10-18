@@ -66,14 +66,27 @@ def create_log_entry(task_description: str, mode: str = "auto") -> Dict:
 
 def log_attempt(log_entry: Dict, attempt: int, implementation: Dict, error_context: str = None) -> None:
     """Log a single attempt at implementation."""
+    # Extract full file contents for detailed logging
+    files_with_content = []
+    for file_spec in implementation.get('files', []):
+        file_data = {
+            "path": file_spec.get('path', 'unknown'),
+            "action": file_spec.get('action', 'unknown'),
+            "content": file_spec.get('content', ''),
+            "explanation": file_spec.get('explanation', 'No explanation provided')
+        }
+        files_with_content.append(file_data)
+
     attempt_data = {
         "attempt": attempt,
         "analysis": implementation.get('analysis', 'No analysis'),
         "files_count": len(implementation.get('files', [])),
-        "files": [f.get('path', 'unknown') for f in implementation.get('files', [])],
+        "files": files_with_content,  # Full file contents instead of just paths
         "commit_message": implementation.get('commit_message', 'No commit message'),
+        "verification_notes": implementation.get('verification_notes', ''),
         "error_context": error_context,
-        "has_raw_response": 'raw_response' in implementation
+        "has_raw_response": 'raw_response' in implementation,
+        "raw_response": implementation.get('raw_response', '')
     }
     log_entry["attempts"].append(attempt_data)
 
@@ -205,3 +218,112 @@ def analyze_logs(log_dir: str = DEFAULT_LOG_DIR) -> None:
             first_error = task['error_messages'][0][:100]
             print(f"      Error: {first_error}...")
         print()
+
+
+def show_generated_code(log_file_path: str, attempt_number: int = None) -> None:
+    """Display the complete generated code from a log file."""
+    try:
+        with open(log_file_path, 'r', encoding='utf-8') as f:
+            log_data = json.load(f)
+
+        print(f"\n📋 Task: {log_data.get('task', 'Unknown task')}")
+        print(f"🕒 Timestamp: {log_data.get('timestamp', 'Unknown')}")
+        print(f"📊 Final Status: {log_data.get('final_status', 'Unknown')}")
+        print(f"🔢 Total Attempts: {len(log_data.get('attempts', []))}")
+
+        attempts = log_data.get('attempts', [])
+
+        if attempt_number is not None:
+            # Show specific attempt
+            if 1 <= attempt_number <= len(attempts):
+                attempts = [attempts[attempt_number - 1]]
+                print(f"\n🔍 Showing attempt {attempt_number}/{len(log_data.get('attempts', []))}")
+            else:
+                print(f"❌ Invalid attempt number. Valid range: 1-{len(attempts)}")
+                return
+
+        # Display each attempt
+        for attempt_data in attempts:
+            attempt_num = attempt_data.get('attempt', '?')
+            print(f"\n{'='*80}")
+            print(f"📝 Attempt {attempt_num}")
+            print(f"{'='*80}")
+
+            # Show analysis
+            analysis = attempt_data.get('analysis', 'No analysis')
+            print(f"\n💭 Analysis:")
+            print(f"   {analysis}")
+
+            # Show commit message
+            commit_msg = attempt_data.get('commit_message', 'No commit message')
+            print(f"\n💾 Commit Message:")
+            print(f"   {commit_msg}")
+
+            # Show verification notes
+            verification_notes = attempt_data.get('verification_notes', '')
+            if verification_notes:
+                print(f"\n🔍 Verification Notes:")
+                print(f"   {verification_notes}")
+
+            # Show files with full content
+            files = attempt_data.get('files', [])
+            if files:
+                print(f"\n📁 Generated Files ({len(files)}):")
+                for file_data in files:
+                    path = file_data.get('path', 'unknown')
+                    action = file_data.get('action', 'unknown')
+                    content = file_data.get('content', '')
+                    explanation = file_data.get('explanation', 'No explanation')
+
+                    print(f"\n   📄 {path} ({action})")
+                    if explanation != 'No explanation provided':
+                        print(f"   💡 {explanation}")
+
+                    if content.strip():
+                        print(f"\n   📜 Content:")
+                        # Add indentation to make the code more readable
+                        indented_content = '\n'.join('      ' + line for line in content.split('\n'))
+                        print(indented_content)
+                    else:
+                        print(f"      (empty content)")
+            else:
+                print(f"\n   📁 No files generated")
+
+            # Show error context if present
+            error_context = attempt_data.get('error_context')
+            if error_context:
+                print(f"\n❌ Error Context:")
+                print(f"   {error_context}")
+
+        # Show raw response if available and different from parsed JSON
+        if attempts and attempts[0].get('has_raw_response'):
+            raw_response = attempts[0].get('raw_response', '')
+            if raw_response and len(raw_response) > 100:  # Only show if substantial
+                print(f"\n📤 Raw LLM Response (first 1000 chars):")
+                print(f"   {raw_response[:1000]}")
+                if len(raw_response) > 1000:
+                    print(f"   ... (truncated)")
+
+        print(f"\n{'='*80}")
+        print(f"✅ End of log display")
+        print(f"{'='*80}")
+
+    except FileNotFoundError:
+        print(f"❌ Log file not found: {log_file_path}")
+    except json.JSONDecodeError as e:
+        print(f"❌ Invalid JSON in log file: {e}")
+    except Exception as e:
+        print(f"❌ Error reading log file: {e}")
+
+
+if __name__ == '__main__':
+    import sys
+
+    if len(sys.argv) > 1:
+        # If a log file path is provided, show its generated code
+        log_file = sys.argv[1]
+        attempt_num = int(sys.argv[2]) if len(sys.argv) > 2 else None
+        show_generated_code(log_file, attempt_num)
+    else:
+        # If run directly without arguments, analyze logs in default directory
+        analyze_logs()

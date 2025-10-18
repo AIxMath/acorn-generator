@@ -90,8 +90,10 @@ def load_acorn_context(acornlib_path: str, context_file: str) -> str:
     if os.path.exists(context_file):
         with open(context_file, 'r') as f:
             # Read first 20000 chars to avoid token limits
-            acorn_docs = f.read(20000)
-            context_parts.append("\n=== Acorn Documentation (Truncated) ===")
+            # acorn_docs = f.read(20000)
+            # context_parts.append("\n=== Acorn Documentation (Truncated) ===")
+            acorn_docs = f.read()
+            context_parts.append("\n=== Acorn Documentation ===")
             context_parts.append(acorn_docs)
 
     return "\n".join(context_parts)

@@ -121,6 +121,58 @@ Specify a custom context file:
 python acorn_agent.py --request "Define quaternions" --context custom_context.txt
 ```
 
+### Autonomous Development Agent
+
+For automated development of the Acorn standard library from TODO.md:
+
+```bash
+# Run autonomously from TODO.md (default mode)
+python acorn_agent.py
+
+# Execute a single task manually
+python acorn_agent.py --task "Add multiplication axioms to Semiring"
+
+# Interactive mode for manual task entry
+python acorn_agent.py --interactive
+
+# Dry run to see what would be done
+python acorn_agent.py --dry-run
+
+# Analyze logs to understand failure patterns
+python acorn_agent.py --analyze-logs
+```
+
+#### Enhanced Logging
+
+The autonomous agent now captures **complete generated code** in detailed logs:
+
+```bash
+# View complete generated code from any log file
+python show_code.py logs/task_20231018_160000_example.json
+
+# View a specific attempt (useful for debugging failures)
+python show_code.py logs/task_20231018_160000_example.json 2
+
+# Or use the log_utils module directly
+python agent/log_utils.py logs/task_20231018_160000_example.json
+```
+
+**What's logged:**
+- Complete file contents for every LLM-generated file
+- Analysis, commit messages, and verification notes
+- Error context for failed attempts
+- Raw LLM responses for debugging
+- All attempts in the auto-fix loop
+
+#### Auto-Fix Mechanism
+
+The agent includes robust error handling:
+1. LLM generates implementation
+2. Code is verified with `./acorn --lib ./acornlib`
+3. If verification fails, error message is fed back to LLM
+4. Process repeats up to 3 times with different prompts
+5. Changes are rolled back between attempts using `git checkout .`
+
 ## What the Agent Generates
 
 The agent produces complete, compilable Acorn code including:

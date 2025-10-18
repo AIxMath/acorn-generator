@@ -52,6 +52,7 @@ Logging and analysis functionality.
 - `log_attempt()`: Log each implementation attempt
 - `save_agent_log()`: Save complete task log to JSON
 - `analyze_logs()`: Analyze historical logs for patterns and statistics
+- `show_generated_code()`: Display complete generated code from a specific log file
 
 ## Design Principles
 
@@ -76,6 +77,12 @@ python acorn_agent.py --interactive
 
 # Analyze logs
 python acorn_agent.py --analyze-logs
+
+# View complete generated code from a log file
+python agent/log_utils.py logs/task_20231018_160000_example.json
+
+# View specific attempt from a log file
+python agent/log_utils.py logs/task_20231018_160000_example.json 2
 ```
 
 ## Error Handling
@@ -96,6 +103,7 @@ All agent activities are logged to JSON files in the `logs/` directory:
 Logs include:
 - Task description and mode
 - All LLM attempts with analysis
-- Files modified
+- **Complete generated code for each file** (full content, not just paths)
 - Error messages and verification failures
 - Final status and total execution time
+- Raw LLM responses (for debugging)

@@ -6,7 +6,7 @@ This package contains modules for autonomous development of the Acorn standard l
 
 from .agent import run_agent, run_single_task
 from .cli import main
-from .log_utils import setup_logging, analyze_logs, create_log_entry, save_agent_log
+from .log_utils import setup_logging, analyze_logs, create_log_entry, save_agent_log, show_generated_code
 from .git_ops import git_add_commit_push
 from .verification import verify_acorn_code, verify_acorn_file
 from .file_ops import (
@@ -23,6 +23,7 @@ __all__ = [
     'analyze_logs',
     'create_log_entry',
     'save_agent_log',
+    'show_generated_code',
     'git_add_commit_push',
     'verify_acorn_code',
     'verify_acorn_file',
