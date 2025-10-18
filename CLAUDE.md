@@ -40,21 +40,46 @@ python acorn_agent.py --request "Define fibonacci sequence" --model gpt-4
 ```
 
 ### Running the autonomous development agent
+
+**Three modes of operation:**
+
+1. **TODO.md Mode** (default) - Reads tasks from acornlib/TODO.md
+2. **Manual Task Mode** (`--task`) - Execute a single task
+3. **Interactive Mode** (`--interactive`) - Enter tasks interactively
+
 ```bash
 # Dry run (see what would be done)
 python acorn_dev_agent.py --dry-run
 
-# Run with default settings (processes tasks from acornlib/TODO.md)
+# TODO.md mode (default - processes tasks from acornlib/TODO.md)
 python acorn_dev_agent.py
+
+# Manual task mode - execute a single task
+python acorn_dev_agent.py --task "Add multiplication axioms to Semiring"
+
+# Interactive mode - enter tasks manually
+python acorn_dev_agent.py --interactive
 
 # Run without pushing (commit locally only)
 python acorn_dev_agent.py --no-push
 
-# Limit iterations
+# Ask for confirmation before each push
+python acorn_dev_agent.py --confirm-push
+
+# Interactive mode with confirmation before push
+python acorn_dev_agent.py --interactive --confirm-push
+
+# Limit iterations (only for TODO.md mode)
 python acorn_dev_agent.py --max-iterations 3
 
 # Custom paths
 python acorn_dev_agent.py --acornlib-path ./acornlib --context ./context.txt
+
+# Analyze logs to understand failure patterns
+python acorn_dev_agent.py --analyze-logs
+
+# Analyze logs from custom directory
+python acorn_dev_agent.py --analyze-logs --log-dir ./custom_logs
 ```
 
 The autonomous agent will:
@@ -111,7 +136,8 @@ Autonomous development agent for the Acorn standard library with auto-fix:
 - `extract_next_task(todo_path)`: Parses TODO.md to find next uncompleted task
 - `update_todo_mark_complete(todo_path, task_description)`: Marks tasks as [x] when done
 - `load_acorn_context(acornlib_path, context_file)`: Loads CLAUDE.md, TODO.md, and documentation context
-- `generate_implementation(task, context, model, error_context)`: Uses LLM to generate code (with error feedback)
+- `load_existing_files(acornlib_path, task_description)`: Finds and loads existing .ac files relevant to the task
+- `generate_implementation(task, context, model, acornlib_path, error_context)`: Uses LLM to generate code (with existing file contents for context and error feedback)
 - `verify_acorn_file(acornlib_path, test_file)`: Verifies specific file with `./acorn --lib ./acornlib`
 - `verify_acorn_code(acornlib_path)`: Runs `./acorn --lib ./acornlib` to verify all code
 - `apply_implementation(acornlib_path, implementation)`: Applies file changes from LLM response
@@ -120,7 +146,43 @@ Autonomous development agent for the Acorn standard library with auto-fix:
 
 **Auto-fix feature**: When verification fails, the agent feeds error messages back to the LLM for automatic correction, retrying up to 3 times before giving up. Changes are rolled back between retry attempts using `git checkout .`.
 
+**Incremental modification strategy**: The agent loads existing file contents that match keywords in the task description and provides them to the LLM with explicit instructions to preserve all existing code and only append new additions. This prevents the LLM from doing radical rewrites and ensures careful, incremental changes.
+
 **Note**: The Acorn binary is located in the base directory (not inside acornlib). The agent runs `./acorn --lib ./acornlib` from the base directory to verify code.
+
+### Log Analysis
+
+The agent maintains comprehensive logs in the `logs/` directory to help you understand why LLM-generated code fails:
+
+**Log files created:**
+- `agent_YYYYMMDD_HHMMSS.log` - General activity log
+- `task_YYYYMMDD_HHMMSS_task_name.json` - Detailed task log
+
+**What logs contain:**
+- Task description and timestamps
+- All LLM attempts with analysis and responses
+- Files modified and error messages
+- Verification failures and auto-fix attempts
+- Final success/failure status
+
+**Analyzing logs:**
+```bash
+# Analyze all logs to identify patterns
+python acorn_dev_agent.py --analyze-logs
+
+# Common failure reasons to watch for:
+- Syntax errors in Acorn code
+- Missing imports or numerals statements
+- Type mismatches (Nat vs nat, etc.)
+- Incomplete proofs
+- Verification errors with specific line numbers
+```
+
+**Using log data:**
+- Review common errors to improve LLM prompts
+- Identify which types of tasks fail most often
+- Track success rates over time
+- Debug specific failures by examining the detailed JSON logs
 
 ## Project Context
 
